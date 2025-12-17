@@ -13,22 +13,33 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Database connection
-const pool = new Pool({
-  host: process.env.DB_HOST || 'postgres',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'taskdb',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-});
+// Database connection - mock in test environment
+const pool = process.env.NODE_ENV === 'test' 
+  ? {
+      query: jest.fn().mockResolvedValue({ rows: [] }),
+    } as any
+  : new Pool({
+      host: process.env.DB_HOST || 'postgres',
+      port: parseInt(process.env.DB_PORT || '5432'),
+      database: process.env.DB_NAME || 'taskdb',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+    });
 
-// Kafka setup
-const kafka = new Kafka({
-  clientId: 'task-backend',
-  brokers: [process.env.KAFKA_BROKER || 'kafka:9092'],
-});
+// Kafka setup - mock in test environment
+const kafka = process.env.NODE_ENV === 'test'
+  ? null
+  : new Kafka({
+      clientId: 'task-backend',
+      brokers: [process.env.KAFKA_BROKER || 'kafka:9092'],
+    });
 
-const producer = kafka.producer();
+const producer = process.env.NODE_ENV === 'test'
+  ? {
+      connect: jest.fn().mockResolvedValue(undefined),
+      send: jest.fn().mockResolvedValue(undefined),
+    } as any
+  : kafka!.producer();
 
 // Initialize database
 async function initDB() {

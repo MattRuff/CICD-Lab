@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { app } from './index';
+import { app, pool } from './index';
 
 describe('Backend API Tests', () => {
   describe('GET /health', () => {
@@ -24,6 +24,9 @@ describe('Backend API Tests', () => {
 
   describe('GET /api/tasks/:id', () => {
     it('should return 404 for non-existent task', async () => {
+      // Mock the database query to return empty result
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+      
       const response = await request(app).get('/api/tasks/99999');
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error', 'Task not found');
