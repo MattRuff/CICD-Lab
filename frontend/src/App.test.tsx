@@ -19,7 +19,8 @@ describe('App', () => {
 
   it('renders add task button', () => {
     render(<App />);
-    const addButton = screen.getByText(/Add Task/i);
+    // Button text changes based on loading state: "Add Task" or "Adding..."
+    const addButton = screen.getByRole('button', { name: /add task|adding/i });
     expect(addButton).toBeDefined();
   });
 });
