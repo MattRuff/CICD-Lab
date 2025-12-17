@@ -12,8 +12,8 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
-# Install envsubst (part of gettext package)
-RUN apk add --no-cache gettext
+# Install envsubst (lighter gettext-base package for better ARM64 compatibility)
+RUN apk update && apk add --no-cache gettext-base
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.template.conf /etc/nginx/templates/nginx.template.conf
