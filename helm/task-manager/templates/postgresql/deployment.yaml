@@ -1,0 +1,68 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-postgresql
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "task-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+      {{- include "task-manager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: postgresql
+        {{- include "task-manager.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: postgresql
+        image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+        imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.postgresql.service.port }}
+          name: postgresql
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-postgresql-config
+        - secretRef:
+            name: {{ .Release.Name }}-postgresql-secret
+        {{- if .Values.postgresql.persistence.enabled }}
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        {{- end }}
+        {{- if .Values.postgresql.livenessProbe.enabled }}
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - {{ .Values.postgresql.config.username }}
+          initialDelaySeconds: {{ .Values.postgresql.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.postgresql.livenessProbe.periodSeconds }}
+        {{- end }}
+        {{- if .Values.postgresql.readinessProbe.enabled }}
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - {{ .Values.postgresql.config.username }}
+          initialDelaySeconds: {{ .Values.postgresql.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.postgresql.readinessProbe.periodSeconds }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.postgresql.resources | nindent 10 }}
+      {{- if .Values.postgresql.persistence.enabled }}
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-postgresql-pvc
+      {{- end }}
+{{- end }}
+

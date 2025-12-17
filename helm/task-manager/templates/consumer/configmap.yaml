@@ -1,0 +1,17 @@
+{{- if .Values.consumer.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-consumer-config
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "task-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: consumer
+data:
+  DB_HOST: {{ include "task-manager.postgres.host" . }}
+  DB_PORT: {{ .Values.postgresql.service.port | quote }}
+  DB_NAME: {{ .Values.postgresql.config.database | quote }}
+  DB_USER: {{ .Values.postgresql.config.username | quote }}
+  KAFKA_BROKER: {{ include "task-manager.kafka.broker" . }}
+{{- end }}
+

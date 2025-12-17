@@ -1,0 +1,37 @@
+{{- if .Values.zookeeper.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-zookeeper
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "task-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: zookeeper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zookeeper
+      {{- include "task-manager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+        {{- include "task-manager.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: zookeeper
+        image: "{{ .Values.zookeeper.image.repository }}:{{ .Values.zookeeper.image.tag }}"
+        imagePullPolicy: {{ .Values.zookeeper.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.zookeeper.service.port }}
+          name: client
+        env:
+        - name: ZOOKEEPER_CLIENT_PORT
+          value: {{ .Values.zookeeper.env.clientPort | quote }}
+        - name: ZOOKEEPER_TICK_TIME
+          value: {{ .Values.zookeeper.env.tickTime | quote }}
+        resources:
+          {{- toYaml .Values.zookeeper.resources | nindent 10 }}
+{{- end }}
+

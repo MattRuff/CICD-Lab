@@ -1,0 +1,21 @@
+{{- if .Values.kafka.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-kafka
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "task-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: kafka
+spec:
+  type: {{ .Values.kafka.service.type }}
+  selector:
+    app: kafka
+    {{- include "task-manager.selectorLabels" . | nindent 4 }}
+  ports:
+  - port: {{ .Values.kafka.service.port }}
+    targetPort: kafka
+    protocol: TCP
+    name: kafka
+{{- end }}
+

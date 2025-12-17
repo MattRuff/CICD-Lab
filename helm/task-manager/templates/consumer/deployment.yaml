@@ -1,0 +1,34 @@
+{{- if .Values.consumer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-consumer
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "task-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: consumer
+spec:
+  replicas: {{ .Values.consumer.replicaCount }}
+  selector:
+    matchLabels:
+      app: consumer
+      {{- include "task-manager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: consumer
+        {{- include "task-manager.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: consumer
+        image: "{{ .Values.consumer.image.repository }}:{{ .Values.consumer.image.tag }}"
+        imagePullPolicy: {{ .Values.consumer.image.pullPolicy }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-consumer-config
+        - secretRef:
+            name: {{ .Release.Name }}-consumer-secret
+        resources:
+          {{- toYaml .Values.consumer.resources | nindent 10 }}
+{{- end }}
+

@@ -1,0 +1,150 @@
+# Lab environment values - Minikube with GitHub Container Registry
+# Usage: helm install task-manager ./helm/task-manager -f helm/task-manager/values-lab.yaml
+#
+# INSTRUCTIONS:
+# 1. Replace YOUR_GITHUB_USERNAME with your actual GitHub username
+# 2. Push code to GitHub to trigger CI/CD
+# 3. Make images public in GitHub Packages (or add pull secret)
+# 4. Deploy with this values file
+
+namespace:
+  name: task-app
+  create: true
+
+# Backend - uses images from GitHub Container Registry
+backend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/YOUR_GITHUB_USERNAME/task-backend
+    tag: latest
+    pullPolicy: Always  # Always pull latest from registry
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  livenessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 5
+
+# Consumer
+consumer:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/YOUR_GITHUB_USERNAME/task-consumer
+    tag: latest
+    pullPolicy: Always
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+
+# Frontend
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/YOUR_GITHUB_USERNAME/task-frontend
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: LoadBalancer
+    port: 80
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  livenessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  readinessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+# PostgreSQL - sized for Minikube
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  config:
+    database: taskdb
+    username: postgres
+    password: postgres
+  persistence:
+    enabled: true
+    size: 1Gi
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Kafka - sized for Minikube
+kafka:
+  enabled: true
+  image:
+    repository: confluentinc/cp-kafka
+    tag: "7.5.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+# Zookeeper - sized for Minikube
+zookeeper:
+  enabled: true
+  image:
+    repository: confluentinc/cp-zookeeper
+    tag: "7.5.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+# If using private images, uncomment and create the secret:
+# kubectl create secret docker-registry ghcr-secret \
+#   --docker-server=ghcr.io \
+#   --docker-username=YOUR_GITHUB_USERNAME \
+#   --docker-password=YOUR_GITHUB_TOKEN \
+#   --docker-email=YOUR_EMAIL \
+#   -n task-app
+#
+# imagePullSecrets:
+#   - name: ghcr-secret
+

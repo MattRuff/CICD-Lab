@@ -1,0 +1,21 @@
+{{- if .Values.zookeeper.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-zookeeper
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "task-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: zookeeper
+spec:
+  type: {{ .Values.zookeeper.service.type }}
+  selector:
+    app: zookeeper
+    {{- include "task-manager.selectorLabels" . | nindent 4 }}
+  ports:
+  - port: {{ .Values.zookeeper.service.port }}
+    targetPort: client
+    protocol: TCP
+    name: client
+{{- end }}
+

@@ -1,0 +1,14 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-postgresql-config
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "task-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+data:
+  POSTGRES_DB: {{ .Values.postgresql.config.database | quote }}
+  POSTGRES_USER: {{ .Values.postgresql.config.username | quote }}
+{{- end }}
+
