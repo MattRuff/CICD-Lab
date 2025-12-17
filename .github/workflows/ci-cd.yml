@@ -185,11 +185,14 @@ jobs:
         name: frontend-build
         path: frontend/dist/
 
-  # Build and Push Docker Images
-  build-images:
-    name: Build Docker Images
+  # Build and Push Docker Images (Parallel)
+  # ARM64-only builds for faster iteration (2-3x faster than multi-platform)
+  # Change platforms to "linux/amd64,linux/arm64" if you need both architectures
+  
+  build-backend:
+    name: Build Backend Image
     runs-on: ubuntu-latest
-    needs: [test-backend, test-consumer, test-frontend]
+    needs: [test-backend]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     permissions:
@@ -210,8 +213,8 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Extract metadata for Backend
-      id: meta-backend
+    - name: Extract metadata
+      id: meta
       uses: docker/metadata-action@v5
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_BACKEND }}
@@ -224,15 +227,39 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./backend
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/arm64
         push: true
-        tags: ${{ steps.meta-backend.outputs.tags }}
-        labels: ${{ steps.meta-backend.outputs.labels }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+  build-consumer:
+    name: Build Consumer Image
+    runs-on: ubuntu-latest
+    needs: [test-consumer]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
-    - name: Extract metadata for Consumer
-      id: meta-consumer
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
       uses: docker/metadata-action@v5
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_CONSUMER }}
@@ -245,15 +272,39 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./consumer
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/arm64
         push: true
-        tags: ${{ steps.meta-consumer.outputs.tags }}
-        labels: ${{ steps.meta-consumer.outputs.labels }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+  build-frontend:
+    name: Build Frontend Image
+    runs-on: ubuntu-latest
+    needs: [test-frontend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
-    - name: Extract metadata for Frontend
-      id: meta-frontend
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
       uses: docker/metadata-action@v5
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_FRONTEND }}
@@ -266,10 +317,10 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./frontend
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/arm64
         push: true
-        tags: ${{ steps.meta-frontend.outputs.tags }}
-        labels: ${{ steps.meta-frontend.outputs.labels }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -277,7 +328,7 @@ jobs:
   deploy:
     name: Deploy to Kubernetes
     runs-on: ubuntu-latest
-    needs: [build-images]
+    needs: [build-backend, build-consumer, build-frontend]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
