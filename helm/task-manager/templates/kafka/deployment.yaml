@@ -35,6 +35,10 @@ spec:
           value: "PLAINTEXT://0.0.0.0:{{ .Values.kafka.service.port }}"
         - name: KAFKA_ADVERTISED_LISTENERS
           value: "PLAINTEXT://{{ .Release.Name }}-kafka:{{ .Values.kafka.service.port }}"
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: "PLAINTEXT:PLAINTEXT"
+        - name: KAFKA_INTER_BROKER_LISTENER_NAME
+          value: "PLAINTEXT"
         - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
           value: {{ .Values.kafka.config.replicationFactor | quote }}
         - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
