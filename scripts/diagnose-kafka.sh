@@ -31,17 +31,17 @@ else
 fi
 echo ""
 
-echo "5. Checking if Kafka is listening on port 9092..."
+echo "5. Checking if Kafka is listening on ports 9092 and 9093..."
 if [ -n "$KAFKA_POD" ]; then
   echo "Running netstat in Kafka pod..."
-  kubectl exec -n "$NAMESPACE" "$KAFKA_POD" -- sh -c "netstat -tuln | grep 9092 || echo 'Port 9092 not listening!'"
+  kubectl exec -n "$NAMESPACE" "$KAFKA_POD" -- sh -c "netstat -tuln | grep -E '9092|9093' || echo 'Ports not listening!'"
 fi
 echo ""
 
 echo "6. Testing Kafka connectivity from within the cluster..."
 if [ -n "$KAFKA_POD" ]; then
-  echo "Listing Kafka topics..."
-  kubectl exec -n "$NAMESPACE" "$KAFKA_POD" -- kafka-topics --bootstrap-server localhost:9092 --list || echo "Failed to connect to Kafka!"
+  echo "Listing Kafka topics (internal listener on 9093)..."
+  kubectl exec -n "$NAMESPACE" "$KAFKA_POD" -- kafka-topics --bootstrap-server localhost:9093 --list || echo "Failed to connect to Kafka!"
 fi
 echo ""
 
