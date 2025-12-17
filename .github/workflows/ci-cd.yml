@@ -61,7 +61,7 @@ jobs:
     
     - name: Install dependencies
       working-directory: ./backend
-      run: npm ci
+      run: npm install
     
     - name: Run linter
       working-directory: ./backend
@@ -107,7 +107,7 @@ jobs:
     - name: Install dependencies
       working-directory: ./consumer
       run: |
-        pip install --upgrade pip
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
     
     - name: Run tests
@@ -140,7 +140,7 @@ jobs:
     
     - name: Install dependencies
       working-directory: ./frontend
-      run: npm ci
+      run: npm install
     
     - name: Build frontend
       working-directory: ./frontend
