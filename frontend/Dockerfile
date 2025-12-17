@@ -12,8 +12,11 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
-    # Install envsubst (part of gettext package)
-    RUN apk add --no-cache gettext
+# Update apk and install envsubst (part of gettext package)
+# This fixes busybox trigger issues in ARM64 emulation
+RUN apk update && \
+    apk upgrade --no-cache && \
+    apk add --no-cache gettext
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.template.conf /etc/nginx/templates/nginx.template.conf
