@@ -16,7 +16,7 @@ backend:
   enabled: true
   replicaCount: 2
   image:
-    repository: ghcr.io/YOUR_GITHUB_USERNAME/task-backend
+    repository: ghcr.io/mattruff/task-backend
     tag: latest
     pullPolicy: Always  # Always pull latest from registry
   service:
@@ -45,7 +45,7 @@ consumer:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/YOUR_GITHUB_USERNAME/task-consumer
+    repository: ghcr.io/mattruff/task-consumer
     tag: latest
     pullPolicy: Always
   resources:
@@ -61,7 +61,7 @@ frontend:
   enabled: true
   replicaCount: 2
   image:
-    repository: ghcr.io/YOUR_GITHUB_USERNAME/task-frontend
+    repository: ghcr.io/mattruff/task-frontend
     tag: latest
     pullPolicy: Always
   service:
