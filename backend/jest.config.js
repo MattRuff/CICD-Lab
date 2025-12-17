@@ -16,5 +16,6 @@ module.exports = {
       statements: 70,
     },
   },
+  setupFiles: ['<rootDir>/test-setup.js'],
 };
 

@@ -71,12 +71,7 @@ jobs:
       working-directory: ./backend
       run: npm test
       env:
-        DB_HOST: localhost
-        DB_PORT: 5432
-        DB_NAME: taskdb
-        DB_USER: postgres
-        DB_PASSWORD: postgres
-        KAFKA_BROKER: localhost:9092
+        NODE_ENV: test
     
     - name: Generate coverage report
       working-directory: ./backend

@@ -1,0 +1,14 @@
+{{- if .Values.frontend.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-frontend-config
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "task-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+data:
+  BACKEND_HOST: {{ .Release.Name }}-backend
+  BACKEND_PORT: "3000"
+{{- end }}
+
